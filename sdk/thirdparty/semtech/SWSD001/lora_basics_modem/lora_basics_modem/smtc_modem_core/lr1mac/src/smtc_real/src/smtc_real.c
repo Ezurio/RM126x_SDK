@@ -1756,7 +1756,14 @@ void smtc_real_decrement_dr( lr1_stack_mac_t* lr1_mac )
     //  nb_trans must set to 1 and all default channels re-enabled
     lr1_mac->nb_trans = 1;
     // reach this step only if tx_dr = MinDr => enable default channel
-    smtc_real_enable_all_channels_with_valid_freq( lr1_mac );
+
+    // Do this only if no sub-band is enabled, for AU and US devices this will
+    // enable all 64/8 channels, most of which won't be visible to an 8
+    // channel gateway
+    if ( !lr1_mac->sub_band )
+    {
+        smtc_real_enable_all_channels_with_valid_freq( lr1_mac );
+    }
 
     // When all channels are available, lower datarate could be present in case where only DR6 and DR7 was present
     // previously
