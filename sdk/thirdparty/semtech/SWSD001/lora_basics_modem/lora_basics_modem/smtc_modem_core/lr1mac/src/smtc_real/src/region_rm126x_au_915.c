@@ -402,6 +402,11 @@ status_lorawan_t region_rm126x_au_915_get_join_next_channel( lr1_stack_mac_t* lr
     }
 #endif
 
+    // If sub-band is enabled, we can immediately re-enable the 500kHz channel
+    if ( lr1_mac->sub_band )
+    {
+        SMTC_SET_BIT8( &snapshot_channel_tx_mask[BANK_8_500_RM126X_AU915], ( lr1_mac->sub_band - 1 ) );
+    }
     return OKLORAWAN;
 }
 
