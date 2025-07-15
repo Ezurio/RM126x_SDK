@@ -1,11 +1,11 @@
 /*******************************************************************************
   Filename:       ticker.c
-  Revised:        08/12/23
-  Revision:       1.0
+  Revised:        15/07/25
+  Revision:       2.0
 
   Description:    Provides system tick from which ms and s are derived.
 
-  Copyright (c) 2024 Ezurio.
+  Copyright (c) 2024-25 Ezurio.
  
   All rights reserved.
  
@@ -76,6 +76,8 @@ typedef struct {
  ******************************************************************************/
 static timed_callback_function_t timed_callback_function;
 
+static uint32_t overflow_count = 0;
+
 /*******************************************************************************
  ***************************  GLOBAL FUNCTIONS   *******************************
  ******************************************************************************/
@@ -96,6 +98,15 @@ void ticker_init(void)
 
   /* Enable RTCC Interrupt for appropriate channel */
   RTCC_IntEnable(TICKER_RTCC_CHANNEL_INT_ID);
+
+  /* Enable overflow detection interrupt */
+  RTCC_IntEnable(RTCC_IEN_OF);
+
+  /* Clear any spurious flags */
+  RTCC_IntClear(RTCC_IF_OF);
+  RTCC_IntClear(TICKER_RTCC_CHANNEL_INT_FLAG);
+
+  /* Clear global IRQ bit and then enable */
   NVIC_ClearPendingIRQ(RTCC_IRQn);
   NVIC_EnableIRQ(RTCC_IRQn);
 }
@@ -125,6 +136,16 @@ uint32_t ticker_get_tick_ms(void)
   ticks_ms = sl_sleeptimer_tick_to_ms(ticks_ms);
 
   return(ticks_ms);
+}
+
+uint32_t ticker_get_overflow_count(void)
+{
+  return(overflow_count);
+}
+
+void ticker_reset_overflow_count(void)
+{
+  overflow_count = 0;
 }
 
 void start_ticker_timed_callback_stop(void)
@@ -175,9 +196,20 @@ void start_ticker_timed_callback(const uint32_t milliseconds,
  ******************************************************************************/
 void RTCC_IRQHandler(void)
 {
-  /* Clear interrupt source */
-  RTCC_IntClear(TICKER_RTCC_CHANNEL_INT_FLAG);
+  uint32_t flags = RTCC_IntGet();
 
-  /* Call the callback with data. */
-  (timed_callback_function.callback)(timed_callback_function.data);
+  if (flags & RTCC_IF_OF)
+  {
+    RTCC_IntClear(RTCC_IF_OF);
+    overflow_count++;
+  }
+
+  if (flags & TICKER_RTCC_CHANNEL_INT_FLAG)
+  {
+    /* Clear interrupt source */
+    RTCC_IntClear(TICKER_RTCC_CHANNEL_INT_FLAG);
+
+    /* Call the callback with data. */
+    (timed_callback_function.callback)(timed_callback_function.data);
+  }
 }
