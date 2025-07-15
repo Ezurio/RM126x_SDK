@@ -164,7 +164,21 @@ void hal_rtc_init( void )
 
 uint32_t hal_rtc_get_time_s( void )
 {
-    return ticker_get_tick_s();
+    uint64_t time_s64;
+    uint64_t overflow_count;
+
+    time_s64 = (uint64_t)ticker_get_tick_s();
+    overflow_count = (uint64_t)ticker_get_overflow_count();
+    if (overflow_count)
+    {
+        time_s64 += (overflow_count * TICKER_SECONDS_MAX);
+    }
+    if (time_s64 > UINT32_MAX)
+    {
+        time_s64 -= UINT32_MAX;
+        ticker_reset_overflow_count();
+    }
+    return((uint32_t)time_s64);
 }
 
 uint32_t hal_rtc_get_time_100us( void )
