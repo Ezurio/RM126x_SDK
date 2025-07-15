@@ -1,11 +1,11 @@
 /*******************************************************************************
   Filename:       ticker.h
-  Revised:        08/12/2023
-  Revision:       1.0
+  Revised:        15/07/2025
+  Revision:       2.0
 
   Description:    Provides system tick from which ms and s are derived.
 
-  Copyright (c) 2024 Ezurio.
+  Copyright (c) 2024-25 Ezurio.
  
   All rights reserved.
  
@@ -47,6 +47,8 @@
 #ifndef EZ_COMPONENTS_HDR_TICKER_H_
 #define EZ_COMPONENTS_HDR_TICKER_H_
 
+#define TICKER_SECONDS_MAX (uint64_t)((1.0f / 32768.0f) * (float)(0xFFFFFFFF))
+
 /*****************************************************************************
  * @fn void ticker_init
  * @brief   Initialize the tick timer.
@@ -66,6 +68,19 @@ uint32_t ticker_get_tick_s(void);
  * @return Milliseconds tick
  ****************************************************************************/
 uint32_t ticker_get_tick_ms(void);
+
+/*****************************************************************************
+ * @fn uint32_t ticker_get_overflow_count
+ * @brief Get the number of overflows of the ms timer.
+ * @return Overflow count
+ ****************************************************************************/
+uint32_t ticker_get_overflow_count(void);
+
+/*****************************************************************************
+ * @fn void ticker_reset_overflow_count
+ * @brief Clear the count of overflows of the ms timer.
+ ****************************************************************************/
+void ticker_reset_overflow_count(void);
 
 /*****************************************************************************
  * @fn uint32_t ticker_get_ticks
