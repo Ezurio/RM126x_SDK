@@ -43,7 +43,13 @@
 
 #include "smtc_hal_mcu.h"
 //#include "modem_pinout.h"
-#include "cmsis_gcc.h"
+
+#if defined( __GNUC__ )
+    #include "cmsis_gcc.h"
+#elif defined( __ICCARM__ )
+    #include "cmsis_iccarm.h"
+#endif
+
 //#include "smtc_board.h"
 #include "em_device.h"
 #include "efr32bg22xx_hal.h"
